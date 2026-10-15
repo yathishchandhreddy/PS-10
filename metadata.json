@@ -1,0 +1,10 @@
+{
+  "name": "RiskLens TN",
+  "description": "Tamil Nadu Catastrophe Risk Intelligence Platform - Explore geospatial disaster risks, property loss estimation, and indicative insurance pricing.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
