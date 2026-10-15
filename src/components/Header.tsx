@@ -9,6 +9,7 @@ interface HeaderProps {
   onNavigateStep?: (step: number) => void;
   userRole?: string;
   onSwitchUser?: () => void;
+  onSelectRole?: (role: string) => void;
   onReplayIntro?: () => void;
 }
 
@@ -20,9 +21,11 @@ export const Header: React.FC<HeaderProps> = ({
   onNavigateStep,
   userRole,
   onSwitchUser,
+  onSelectRole,
   onReplayIntro,
 }) => {
   const [showSosModal, setShowSosModal] = useState(false);
+  const [showRoleModal, setShowRoleModal] = useState(false);
 
   return (
     <>
@@ -111,25 +114,140 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button
               type="button"
-              onClick={onSwitchUser}
-              title={`Active Role: ${userRole || 'Property Owner'}. Click to switch.`}
-              className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full bg-white border border-[#E2E8F0] hover:border-[#059669] transition-colors shadow-sm cursor-pointer"
+              onClick={() => setShowRoleModal(true)}
+              title={`Active Role: ${userRole || 'Property Owner'}. Click to switch role.`}
+              className={`flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full border shadow-sm cursor-pointer transition-all ${
+                userRole === 'Farmer'
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-800 hover:border-emerald-600'
+                  : 'bg-white border-[#E2E8F0] hover:border-[#059669]'
+              }`}
             >
-              <div className="w-7 h-7 rounded-full bg-[#059669] flex items-center justify-center text-white font-bold text-xs">
-                <span className="material-symbols-outlined text-[16px]">person</span>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-xs ${
+                userRole === 'Farmer' ? 'bg-[#059669]' : 'bg-[#059669]'
+              }`}>
+                <span className="material-symbols-outlined text-[16px]">
+                  {userRole === 'Farmer' ? 'agriculture' : 'person'}
+                </span>
               </div>
               <span className="hidden sm:inline text-xs font-medium text-[#1E293B]">
                 {userRole || 'Property Owner'}
               </span>
+              <span className="material-symbols-outlined text-[14px] text-[#64748B]">expand_more</span>
             </button>
           </div>
         </div>
       </header>
 
+      {/* Role Switcher Modal */}
+      {showRoleModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowRoleModal(false);
+          }}
+        >
+          <div className="bg-white border border-[#E2E8F0] rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
+              <div className="flex items-center gap-2 text-[#059669]">
+                <span className="material-symbols-outlined text-2xl">switch_account</span>
+                <h3 className="font-bold text-lg text-[#1E293B] font-space">Switch Stakeholder Role</h3>
+              </div>
+              <button
+                onClick={() => setShowRoleModal(false)}
+                className="w-8 h-8 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#64748B] hover:text-[#1E293B] cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-[#64748B]">
+              Choose a stakeholder perspective to customize catastrophe analytics, property loss calculations, or farmer crop intelligence:
+            </p>
+
+            <div className="space-y-2">
+              {[
+                { id: 'Property Owner', icon: 'home', desc: 'Residential & commercial property risk' },
+                { id: 'Farmer', icon: 'agriculture', desc: 'Crop loss, PMFBY insurance & agricultural risk', highlight: true },
+                { id: 'Insurance Professional', icon: 'verified_user', desc: 'Actuarial underwriting & indicative pricing' },
+                { id: 'Government Official', icon: 'account_balance', desc: 'TNSDMA disaster response & mitigation' },
+                { id: 'Catastrophe Risk Analyst', icon: 'analytics', desc: 'Spatial hazard simulation & vulnerability grids' },
+              ].map((role) => {
+                const isSelected = userRole === role.id;
+                return (
+                  <button
+                    key={role.id}
+                    type="button"
+                    onClick={() => {
+                      if (onSelectRole) onSelectRole(role.id);
+                      setShowRoleModal(false);
+                    }}
+                    className={`w-full p-3 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#ECFDF5] border-[#059669] text-[#059669] shadow-xs ring-1 ring-[#059669]'
+                        : role.highlight
+                        ? 'bg-[#F0FDF4] border-[#86EFAC] hover:border-[#059669]'
+                        : 'bg-[#F8FAFC] border-[#E2E8F0] hover:border-[#CBD5E1]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                        isSelected ? 'bg-[#059669] text-white' : 'bg-white text-[#64748B] border border-[#E2E8F0]'
+                      }`}>
+                        <span className="material-symbols-outlined text-[20px]">{role.icon}</span>
+                      </div>
+                      <div>
+                        <div className="font-space font-bold text-xs text-[#1E293B] flex items-center gap-1.5">
+                          <span>{role.id}</span>
+                          {role.highlight && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">
+                              Agri Module
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-[#64748B] block">{role.desc}</span>
+                      </div>
+                    </div>
+                    {isSelected && (
+                      <span className="material-symbols-outlined text-[#059669] text-[18px]">check_circle</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="pt-2 border-t border-[#E2E8F0] flex items-center justify-between text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRoleModal(false);
+                  if (onSwitchUser) onSwitchUser();
+                }}
+                className="text-[#64748B] hover:text-[#059669] flex items-center gap-1 cursor-pointer font-medium"
+              >
+                <span className="material-symbols-outlined text-[16px]">logout</span>
+                <span>Full Logout / Change User</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowRoleModal(false)}
+                className="px-4 py-1.5 rounded-full bg-[#F1F5F9] text-[#1E293B] hover:bg-[#E2E8F0] font-space font-bold cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* SOS Quick Dial Modal */}
       {showSosModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-fadeIn">
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowSosModal(false);
+          }}
+        >
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
               <div className="flex items-center gap-2 text-[#DC2626]">
                 <span className="material-symbols-outlined text-2xl animate-pulse">crisis_alert</span>

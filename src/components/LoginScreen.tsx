@@ -290,17 +290,28 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onReplayIntro
               </div>
             </div>
 
-            {/* Role Selection Matrix (The 4 Specified Roles) */}
+            {/* Role Selection Matrix (The 5 Supported Roles) */}
             <div>
-              <label className="block text-xs font-mono text-[#64748B] uppercase tracking-wider mb-2 font-semibold">
-                Select Your Role
-              </label>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-mono text-[#64748B] uppercase tracking-wider font-semibold">
+                  Select Your Stakeholder Role
+                </label>
+                <span className="text-[10px] font-mono text-[#059669] font-bold bg-[#ECFDF5] px-2 py-0.5 rounded-full border border-[#A7F3D0]">
+                  5 Specialized Modes
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 {[
                   {
                     id: 'Property Owner',
                     icon: 'home',
                     desc: 'Home, villa & asset safety',
+                  },
+                  {
+                    id: 'Farmer',
+                    icon: 'agriculture',
+                    desc: 'Crop loss, PMFBY & farm risk',
+                    highlight: true,
                   },
                   {
                     id: 'Insurance Professional',
@@ -326,15 +337,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onReplayIntro
                       onClick={() => setSelectedRole(role.id)}
                       className={`p-3 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
                         isSelected
-                          ? 'bg-[#ECFDF5] border-[#059669] text-[#059669] shadow-sm'
+                          ? 'bg-[#ECFDF5] border-[#059669] text-[#059669] shadow-sm ring-1 ring-[#059669]'
+                          : role.highlight
+                          ? 'bg-[#F0FDF4] border-[#86EFAC] hover:border-[#059669]'
                           : 'bg-[#F8FAFC] border-[#E2E8F0] hover:border-[#CBD5E1]'
                       }`}
                     >
+                      {role.highlight && !isSelected && (
+                        <span className="absolute top-1 right-2 text-[8px] font-mono font-bold text-[#166534] bg-[#DCFCE7] px-1.5 py-0.2 rounded">
+                          NEW
+                        </span>
+                      )}
                       <div>
                         <div className="flex items-center gap-1.5 mb-1.5">
                           <span
                             className={`material-symbols-outlined text-[18px] ${
-                              isSelected ? 'text-[#059669]' : 'text-[#64748B]'
+                              isSelected ? 'text-[#059669]' : role.highlight ? 'text-[#16a34a]' : 'text-[#64748B]'
                             }`}
                           >
                             {role.icon}

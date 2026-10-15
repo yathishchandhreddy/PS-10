@@ -120,6 +120,36 @@ export const TN_REFERENCE_LOCATIONS: LocationData[] = [
     distanceToCoastKm: 0.3,
     distanceToWaterbodyM: 300,
     seismicZone: 'Zone II (Low)',
+  },
+  {
+    name: 'Thanjavur Cauvery Delta Basin',
+    district: 'Thanjavur',
+    lat: 10.7870,
+    lng: 79.1378,
+    elevationMeters: 22,
+    distanceToCoastKm: 65.0,
+    distanceToWaterbodyM: 180,
+    seismicZone: 'Zone II (Low)',
+  },
+  {
+    name: 'Tiruvarur Paddy Canal Belt',
+    district: 'Tiruvarur',
+    lat: 10.7725,
+    lng: 79.6365,
+    elevationMeters: 8,
+    distanceToCoastKm: 28.0,
+    distanceToWaterbodyM: 120,
+    seismicZone: 'Zone II (Low)',
+  },
+  {
+    name: 'Erode Turmeric & Sugarcane Basin',
+    district: 'Erode',
+    lat: 11.3410,
+    lng: 77.7172,
+    elevationMeters: 183,
+    distanceToCoastKm: 220.0,
+    distanceToWaterbodyM: 250,
+    seismicZone: 'Zone II (Low)',
   }
 ];
 
@@ -139,6 +169,14 @@ export const DATA_PROVIDERS = [
     period: 'Updated 2024',
     reliability: 'Verified State Authority Database',
     notes: 'Provides micro-basin flood catchment demarcations, Pallikaranai marshland buffer corridors, and coastal storm surge maps.'
+  },
+  {
+    name: 'Department of Agriculture & Farmers Welfare, Govt of Tamil Nadu',
+    dataset: 'Uzhavan Portal Agronomic Database & PMFBY Crop Loss Thresholds',
+    coverage: 'Cauvery Delta & All 38 Agri Districts',
+    period: '2024 - 2025 (Active)',
+    reliability: 'Verified State Agricultural Registry',
+    notes: 'Notified Scale of Finance, crop insurance subsidy allocations, and village-level yield assessment norms.'
   },
   {
     name: 'Survey of India & NRSC Bhuvan',
@@ -164,6 +202,18 @@ export const OFFICIAL_EMERGENCY_CONTACTS = [
     number: '1070',
     type: 'Toll-Free 24x7 Emergency Help',
     authority: 'Government of Tamil Nadu'
+  },
+  {
+    service: 'Kisan Call Center / Farmers Toll-Free Help',
+    number: '1800-180-1551 / 1551',
+    type: 'Crop Loss & Agri Emergency Support',
+    authority: 'Dept of Agriculture, Govt of India & TN'
+  },
+  {
+    service: 'PMFBY Crop Insurance Grievance Helpline',
+    number: '14447',
+    type: '72-Hour Disaster Loss Intimation',
+    authority: 'Pradhan Mantri Fasal Bima Yojana'
   },
   {
     service: 'District Disaster Management Authority',

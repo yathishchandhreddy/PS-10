@@ -97,3 +97,76 @@ export interface SimulationStage {
   imageUrl: string;
   vectorArrowsActive?: boolean;
 }
+
+// ==========================================
+// FARMER MODULE TYPES & DATA MODELS
+// ==========================================
+
+export type CropCategory = 'Cereals & Grains' | 'Commercial & Cash Crops' | 'Horticulture & Fruits' | 'Oilseeds & Pulses';
+
+export type TNSeason = 'Kuruvai / Kharif (Jun-Sep)' | 'Samba / Thaladi / Rabi (Oct-Jan)' | 'Navarai / Summer (Feb-May)';
+
+export type CropGrowthStage = 'Sowing / Seedling' | 'Vegetative / Tillering' | 'Flowering / Panicle' | 'Maturity / Harvest Ready';
+
+export interface CropDefinition {
+  id: string;
+  name: string;
+  tamilName: string;
+  category: CropCategory;
+  recommendedSeason: string;
+  standardYieldPerAcre: number; // in quintals (or tonnes for sugarcane)
+  yieldUnit: string;
+  mspOrPricePerUnit: number; // in INR
+  standardInputCostPerAcre: number; // INR
+  pmfbySumInsuredPerAcre: number; // INR
+  pmfbyPremiumRatePercent: number; // 1.5% Rabi, 2% Kharif, 5% Commercial
+  floodTolerance: 'Very Low' | 'Low' | 'Moderate' | 'Resilient (Sub-1 varieties)';
+  cycloneWindTolerance: 'Low' | 'Moderate' | 'High';
+  droughtTolerance: 'Low' | 'Moderate' | 'High';
+  imageUrl: string;
+  description: string;
+}
+
+export interface FarmProfile {
+  farmerName: string;
+  district: string;
+  talukOrVillage: string;
+  surveyNumber: string;
+  cropId: string;
+  acres: number;
+  season: TNSeason;
+  stage: CropGrowthStage;
+  irrigationSource: 'Cauvery / River Canal' | 'Borewell / Tube Well' | 'Open Well / Farm Pond' | 'Rainfed / Non-irrigated';
+  soilType: 'Delta Alluvial Soil' | 'Deep Black Cotton Soil' | 'Red Loamy Soil' | 'Coastal Saline / Sandy';
+  inputInvestmentPerAcre: number;
+}
+
+export interface CropLossResult {
+  exposedCropGrossValue: number;
+  totalInputInvested: number;
+  estimatedYieldLossPercent: number;
+  estimatedLossAmount: number;
+  salvageableValue: number;
+  netFinancialDamage: number;
+  primaryRiskDriver: string;
+  impactSeverity: 'Minor' | 'Moderate' | 'Severe' | 'Catastrophic';
+  advisorySummary: string;
+  mitigationSteps: string[];
+}
+
+export interface PmfbyEstimate {
+  cropName: string;
+  acres: number;
+  totalSumInsured: number;
+  farmerPremiumRatePercent: number;
+  farmerPayablePremium: number;
+  centralGovtSubsidy: number;
+  stateGovtSubsidy: number;
+  totalGovernmentSubsidy: number;
+  actualActuarialPremium: number;
+  claimIndemnityLevelPercent: number;
+  estimatedClaimCompensation: number;
+  notifiedSeason: string;
+  insuranceCompany: string;
+  enrollmentCutoffDate: string;
+}

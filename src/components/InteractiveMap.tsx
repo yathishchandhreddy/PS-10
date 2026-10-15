@@ -647,7 +647,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   };
 
   return (
-    <div className="relative w-full rounded-2xl bg-white border border-[#E2E8F0] overflow-hidden shadow-sm flex flex-col">
+    <div className="relative w-full rounded-2xl bg-white border border-[#E2E8F0] overflow-hidden shadow-sm flex flex-col isolate z-0">
       {/* ======================================================== */}
       {/* 1. ADMIN CADASTRAL BUILDING VULNERABILITY COLORS TOOLBAR */}
       {/* ======================================================== */}
@@ -1114,7 +1114,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
       {/* Manual Coordinate Entry Modal */}
       {showCoordinateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowCoordinateModal(false);
+          }}
+        >
           <form
             onSubmit={handleApplyCoordinates}
             className="bg-white border border-[#E2E8F0] rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 animate-fadeIn"

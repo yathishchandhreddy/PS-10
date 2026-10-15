@@ -14,13 +14,23 @@ export const DashboardLoader: React.FC<DashboardLoaderProps> = ({
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [progress, setProgress] = useState<number>(0);
 
-  const steps = [
-    { id: 1, label: 'Initializing geospatial workspace', detail: 'Calibrating WGS-84 Tamil Nadu projection' },
-    { id: 2, label: 'Preparing location tools', detail: 'OpenStreetMap tile cache & geocoding index' },
-    { id: 3, label: 'Loading available risk data', detail: 'Verified TNSDMA, IMD & BMTPC baseline profiles' },
-    { id: 4, label: 'Preparing insurance analysis', detail: 'Tamil Nadu IIB property underwriting rules' },
-    { id: 5, label: 'Opening your dashboard', detail: 'Mounting interactive map & risk models' },
-  ];
+  const isFarmer = userRole === 'Farmer';
+
+  const steps = isFarmer
+    ? [
+        { id: 1, label: 'Initializing agricultural workspace', detail: 'Calibrating Tamil Nadu agro-climatic zones' },
+        { id: 2, label: 'Loading delta cadastral parcel data', detail: 'Survey boundary & canal drainage network' },
+        { id: 3, label: 'Loading crop hazard models', detail: 'Verified TNAU, IMD & TNSDMA flood/cyclone metrics' },
+        { id: 4, label: 'Configuring PMFBY insurance tables', detail: 'Tamil Nadu notified scale of finance & 95% subsidy' },
+        { id: 5, label: 'Opening Farmer RiskLens workspace', detail: 'Mounting crop loss calculators & farm advisories' },
+      ]
+    : [
+        { id: 1, label: 'Initializing geospatial workspace', detail: 'Calibrating WGS-84 Tamil Nadu projection' },
+        { id: 2, label: 'Preparing location tools', detail: 'OpenStreetMap tile cache & geocoding index' },
+        { id: 3, label: 'Loading available risk data', detail: 'Verified TNSDMA, IMD & BMTPC baseline profiles' },
+        { id: 4, label: 'Preparing insurance analysis', detail: 'Tamil Nadu IIB property underwriting rules' },
+        { id: 5, label: 'Opening your dashboard', detail: 'Mounting interactive map & risk models' },
+      ];
 
   useEffect(() => {
     // Total duration: 2000ms (~2s)

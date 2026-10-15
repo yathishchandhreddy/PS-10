@@ -18,6 +18,7 @@ import { SimulationViewer } from './components/SimulationViewer';
 import { PropertyLossCalculator } from './components/PropertyLossCalculator';
 import { InsurancePricingView } from './components/InsurancePricingView';
 import { RecommendationsView } from './components/RecommendationsView';
+import { FarmerModule } from './components/FarmerModule';
 
 type AppStage = 'intro' | 'login' | 'loading' | 'dashboard';
 
@@ -44,6 +45,9 @@ export default function App() {
 
   // Step state: 1 to 6
   const [currentStep, setCurrentStep] = useState<number>(1);
+
+  // Farmer module GIS map toggle
+  const [showFarmerMap, setShowFarmerMap] = useState<boolean>(false);
 
   // Selected Location (Defaults to Velachery, Chennai)
   const [selectedLocation, setSelectedLocation] = useState<LocationData>(
@@ -109,6 +113,7 @@ export default function App() {
 
   const handleLogin = (name: string, role: string) => {
     setUserProfile({ name, role });
+    setShowFarmerMap(false);
     setAppStage('loading');
   };
 
@@ -209,16 +214,70 @@ export default function App() {
         currentStep={currentStep}
         totalSteps={6}
         stepTitle={stepTitles[currentStep - 1]}
-        onGoBack={() => setCurrentStep((prev) => (prev === 3 ? 1 : Math.max(1, prev - 1)))}
-        onNavigateStep={(step) => setCurrentStep(step)}
+        onGoBack={() => {
+          if (userProfile.role === 'Farmer' && showFarmerMap) {
+            setShowFarmerMap(false);
+          } else {
+            setCurrentStep((prev) => (prev === 3 ? 1 : Math.max(1, prev - 1)));
+          }
+        }}
+        onNavigateStep={(step) => {
+          setShowFarmerMap(false);
+          setCurrentStep(step);
+        }}
         userRole={userProfile.role}
         onSwitchUser={handleSwitchUser}
+        onSelectRole={(role) => {
+          setUserProfile((prev) => ({ ...prev, role }));
+          setShowFarmerMap(false);
+          showToast(`Switched perspective to ${role}`);
+        }}
         onReplayIntro={handleReplayIntro}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-20 pb-24 flex flex-col space-y-6">
-        {/* Step Progress Tracker (Mobile view) */}
+        {/* Dedicated Farmer Perspective Module */}
+        {userProfile.role === 'Farmer' && !showFarmerMap ? (
+          <FarmerModule
+            currentLocation={selectedLocation}
+            onSelectLocation={handleSelectLocation}
+            onOpenMap={() => {
+              setCurrentStep(1);
+              setShowFarmerMap(true);
+            }}
+            onSwitchRole={handleSwitchUser}
+            farmerName={userProfile.name}
+          />
+        ) : (
+          <>
+            {userProfile.role === 'Farmer' && showFarmerMap && (
+              <div className="bg-emerald-50 border border-emerald-300 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs text-emerald-950 shadow-xs animate-fadeIn">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
+                    <span className="material-symbols-outlined text-[18px]">agriculture</span>
+                  </span>
+                  <div>
+                    <strong className="block font-space text-emerald-950">
+                      Farmer GIS Cadastral Mode
+                    </strong>
+                    <span className="text-[11px] text-emerald-800">
+                      Pinpoint your agricultural parcel or inspect waterbody proximity in {selectedLocation.name}.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowFarmerMap(false)}
+                  className="px-4 py-2 rounded-xl bg-[#059669] hover:bg-[#047857] text-white font-space font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                  <span>Return to Farmer Dashboard</span>
+                </button>
+              </div>
+            )}
+
+            {/* Step Progress Tracker (Mobile view) */}
         <div className="flex md:hidden items-center justify-between bg-white border border-[#E2E8F0] p-3 rounded-2xl shadow-xs">
           <div className="flex items-center space-x-2">
             <span className="px-2.5 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] font-mono text-[11px] font-semibold border border-[#A7F3D0]">
@@ -460,15 +519,17 @@ export default function App() {
           />
         )}
 
-        {/* STEP 6: Prevention Recommendations, Emergency SOS & PDF Hub */}
-        {currentStep === 6 && (
-          <RecommendationsView
-            disasterType={selectedDisaster}
-            riskResult={riskResult}
-            onDownloadRiskPdf={handleDownloadRiskPdf}
-            onDownloadInsurancePdf={handleDownloadInsurancePdf}
-            onStartNewSearch={() => setCurrentStep(1)}
-          />
+            {/* STEP 6: Prevention Recommendations, Emergency SOS & PDF Hub */}
+            {currentStep === 6 && (
+              <RecommendationsView
+                disasterType={selectedDisaster}
+                riskResult={riskResult}
+                onDownloadRiskPdf={handleDownloadRiskPdf}
+                onDownloadInsurancePdf={handleDownloadInsurancePdf}
+                onStartNewSearch={() => setCurrentStep(1)}
+              />
+            )}
+          </>
         )}
       </main>
 

@@ -320,3 +320,232 @@ export function generateInsurancePricingPDF(
 
   doc.save(`RiskLens_TN_Insurance_Pricing_${riskResult.location.district}.pdf`);
 }
+
+export function generateFarmerReportPDF(
+  farm: {
+    farmerName: string;
+    district: string;
+    talukOrVillage: string;
+    surveyNumber: string;
+    acres: number;
+    season: string;
+    stage: string;
+    irrigationSource: string;
+    soilType: string;
+  },
+  crop: {
+    name: string;
+    tamilName: string;
+    category: string;
+    standardYieldPerAcre: number;
+    yieldUnit: string;
+    mspOrPricePerUnit: number;
+  },
+  lossResult: {
+    exposedCropGrossValue: number;
+    totalInputInvested: number;
+    estimatedYieldLossPercent: number;
+    estimatedLossAmount: number;
+    salvageableValue: number;
+    netFinancialDamage: number;
+    primaryRiskDriver: string;
+    impactSeverity: string;
+    advisorySummary: string;
+    mitigationSteps: string[];
+  },
+  pmfby: {
+    totalSumInsured: number;
+    farmerPayablePremium: number;
+    totalGovernmentSubsidy: number;
+    estimatedClaimCompensation: number;
+    notifiedSeason: string;
+    insuranceCompany: string;
+  },
+  location: {
+    name: string;
+    lat: number;
+    lng: number;
+    elevationMeters: number;
+  }
+): void {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 16;
+
+  // Header Bar (Agricultural Emerald Green #059669)
+  doc.setFillColor(5, 150, 105);
+  doc.rect(0, 0, pageWidth, 32, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text('RISKLENS TN — FARMER RISK & CROP LOSS INTELLIGENCE', 14, 13);
+
+  doc.setTextColor(240, 253, 250);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.text('Tamil Nadu Agricultural Hazard Assessment & PMFBY Crop Protection Advisory', 14, 20);
+
+  doc.setFontSize(7.5);
+  doc.setTextColor(204, 251, 241);
+  doc.text(`Generated: ${new Date().toLocaleString('en-IN')} | Reference: TN-AGRI-RISK-2026`, 14, 27);
+
+  y = 38;
+
+  // Section 1: Farmer & Land Parcel Information
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(14, y, pageWidth - 28, 26, 3, 3, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(5, 150, 105);
+  doc.text('1. FARMER & LAND PARCEL REGISTRATION', 18, y + 6);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(30, 41, 59);
+  doc.text(`Farmer: ${farm.farmerName || 'Tamil Nadu Farmer'} | Survey No / SF: ${farm.surveyNumber || '142/2B'}`, 18, y + 13);
+  doc.text(`District: ${farm.district} | Taluk / Village: ${farm.talukOrVillage || 'Delta Basin'}`, 18, y + 19);
+  doc.text(`Acreage: ${farm.acres} Acres | Location: ${location.name}`, 110, y + 13);
+  doc.text(`Coordinates: Lat ${location.lat.toFixed(4)}° N, Lng ${location.lng.toFixed(4)}° E (Elev: ${location.elevationMeters}m)`, 110, y + 19);
+
+  y += 31;
+
+  // Section 2: Crop Details & Growth Stage
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(14, y, pageWidth - 28, 26, 3, 3, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(13, 148, 136);
+  doc.text('2. CROP PROFILE & AGRO-ECOLOGICAL ATTRIBUTES', 18, y + 6);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(30, 41, 59);
+  doc.text(`Crop: ${crop.name} (${crop.tamilName})`, 18, y + 13);
+  doc.text(`Cultivation Season: ${farm.season} | Stage: ${farm.stage}`, 18, y + 19);
+  doc.text(`Soil Type: ${farm.soilType}`, 110, y + 13);
+  doc.text(`Irrigation Source: ${farm.irrigationSource}`, 110, y + 19);
+
+  y += 31;
+
+  // Section 3: Catastrophe Hazard & Crop Loss Quantification
+  doc.setFillColor(254, 252, 232); // amber-50
+  doc.setDrawColor(254, 240, 138);
+  doc.roundedRect(14, y, pageWidth - 28, 44, 3, 3, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(180, 83, 9);
+  doc.text('3. CATASTROPHE IMPACT & MONETARY CROP LOSS QUANTIFICATION', 18, y + 7);
+
+  // Big Metric Boxes
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(18, y + 12, 50, 24, 2, 2, 'FD');
+  doc.roundedRect(73, y + 12, 50, 24, 2, 2, 'FD');
+  doc.roundedRect(128, y + 12, 50, 24, 2, 2, 'FD');
+
+  // Box 1
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(220, 38, 38);
+  doc.text(`${lossResult.estimatedYieldLossPercent}%`, 22, y + 21);
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Estimated Yield Loss', 22, y + 27);
+  doc.text(`Severity: ${lossResult.impactSeverity}`, 22, y + 32);
+
+  // Box 2
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(220, 38, 38);
+  doc.text(`₹${lossResult.estimatedLossAmount.toLocaleString('en-IN')}`, 77, y + 21);
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Projected Crop Damage', 77, y + 27);
+  doc.text(`Asset Base: ₹${lossResult.exposedCropGrossValue.toLocaleString('en-IN')}`, 77, y + 32);
+
+  // Box 3
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(5, 150, 105);
+  doc.text(`₹${lossResult.salvageableValue.toLocaleString('en-IN')}`, 132, y + 21);
+  doc.setFontSize(7.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text('Remaining Salvageable Yield', 132, y + 27);
+  doc.text(`Input Invested: ₹${lossResult.totalInputInvested.toLocaleString('en-IN')}`, 132, y + 32);
+
+  y += 49;
+
+  // Section 4: PMFBY Crop Insurance & Subsidy Protection
+  doc.setFillColor(240, 253, 244);
+  doc.setDrawColor(187, 247, 208);
+  doc.roundedRect(14, y, pageWidth - 28, 38, 3, 3, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(22, 101, 52);
+  doc.text('4. PRADHAN MANTRI FASAL BIMA YOJANA (PMFBY) SCHEME PROTECTION', 18, y + 7);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(30, 41, 59);
+  doc.text(`Total Sum Insured (Scale of Finance): ₹${pmfby.totalSumInsured.toLocaleString('en-IN')}`, 18, y + 14);
+  doc.text(`Farmer's Subsidized Share: ₹${pmfby.farmerPayablePremium.toLocaleString('en-IN')} (Only 1.5% - 2.0%)`, 18, y + 20);
+  doc.text(`State & Central Govt Subsidy: ₹${pmfby.totalGovernmentSubsidy.toLocaleString('en-IN')} (Govt absorbs up to 95%)`, 18, y + 26);
+  doc.text(`Estimated Insurance Claim Payout: ₹${pmfby.estimatedClaimCompensation.toLocaleString('en-IN')}`, 18, y + 32);
+
+  doc.text(`Insurer Cluster: ${pmfby.insuranceCompany.split('/')[0]}`, 110, y + 14);
+  doc.text(`Season: ${pmfby.notifiedSeason.split('(')[0]}`, 110, y + 20);
+  doc.text('Claim Intimation Window: Within 72 hrs of disaster', 110, y + 26);
+  doc.text('Helpline: 14447 / Kisan Call Center 1551', 110, y + 32);
+
+  y += 43;
+
+  // Section 5: Recommended Agricultural Mitigations (TNAU & Dept of Agriculture)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(30, 41, 59);
+  doc.text('5. TNAU & STATE AGRI-MET ADVISORY & RECOVERY MEASURES', 14, y);
+  y += 5;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(71, 85, 105);
+
+  lossResult.mitigationSteps.forEach((step, idx) => {
+    doc.text(`${idx + 1}. ${step}`, 16, y);
+    y += 5;
+  });
+
+  doc.text('• Submit formal crop loss intimation on the Uzhavan App or contact your Village Administrative Officer (VAO).', 16, y);
+  y += 6;
+
+  // Emergency Footer Box
+  doc.setFillColor(241, 245, 249);
+  doc.roundedRect(14, y, pageWidth - 28, 14, 2, 2, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(15, 23, 42);
+  doc.text('TAMIL NADU FARMER EMERGENCY HELPLINES:', 18, y + 5);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(71, 85, 105);
+  doc.text('Kisan Call Center: 1800-180-1551 (Toll-Free) | PMFBY Grievance: 14447 | TNSDMA State Emergency: 1070', 18, y + 10);
+
+  doc.setFontSize(6.5);
+  doc.setTextColor(148, 163, 184);
+  doc.text('RiskLens TN Agronomic Intelligence Model. Generated in accordance with TNAU Agro-Met Advisory standards.', 14, 287);
+  doc.text(`Report ID: RLTN-AGRI-${Date.now().toString().slice(-6)} | Page 1 of 1`, pageWidth - 65, 287);
+
+  doc.save(`RiskLens_TN_Farmer_Crop_Risk_${farm.district}_${crop.name.split(' ')[0]}.pdf`);
+}
