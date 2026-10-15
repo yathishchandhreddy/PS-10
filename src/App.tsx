@@ -7,7 +7,9 @@ import { computeIndicativeInsurance } from './services/insuranceEngine';
 import { generateRiskAssessmentPDF, generateInsurancePricingPDF } from './services/pdfGenerator';
 
 import { Header } from './components/Header';
+import { CinematicIntro } from './components/CinematicIntro';
 import { LoginScreen } from './components/LoginScreen';
+import { DashboardLoader } from './components/DashboardLoader';
 import { LocationSearch } from './components/LocationSearch';
 import { InteractiveMap } from './components/InteractiveMap';
 import { DisasterSelector } from './components/DisasterSelector';
@@ -17,20 +19,35 @@ import { PropertyLossCalculator } from './components/PropertyLossCalculator';
 import { InsurancePricingView } from './components/InsurancePricingView';
 import { RecommendationsView } from './components/RecommendationsView';
 
+type AppStage = 'intro' | 'login' | 'loading' | 'dashboard';
+
 export default function App() {
-  // Authentication & Perspective state (starring the 4-image animated login requested by user)
+  // App Stage: 1. intro -> 2. login -> 3. loading -> 4. dashboard
+  const [appStage, setAppStage] = useState<AppStage>(() => {
+    try {
+      const introCompleted = sessionStorage.getItem('risklens_intro_completed');
+      if (introCompleted === 'true') {
+        return 'login';
+      }
+    } catch {
+      // Ignore
+    }
+    return 'intro';
+  });
+
+  // Authentication & Perspective state
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useState<{ name: string; role: string }>({
     name: 'Chennai Resident',
-    role: 'Resident / Property Owner',
+    role: 'Property Owner',
   });
 
   // Step state: 1 to 6
   const [currentStep, setCurrentStep] = useState<number>(1);
 
-  // Selected Location (Defaults to Velachery, Chennai to immediately match the exported Stitch UI)
+  // Selected Location (Defaults to Velachery, Chennai)
   const [selectedLocation, setSelectedLocation] = useState<LocationData>(
-    TN_REFERENCE_LOCATIONS[0] // Velachery, Chennai
+    TN_REFERENCE_LOCATIONS[0]
   );
 
   // Analysis radius in km (default 5 km)
@@ -41,15 +58,15 @@ export default function App() {
 
   // Property Details
   const [property, setProperty] = useState<PropertyDetails>({
-    propertyValue: 7500000, // ₹75 Lakhs
-    contentsValue: 1500000, // ₹15 Lakhs
+    propertyValue: 7500000,
+    contentsValue: 1500000,
     propertyType: 'Residential RCC',
     builtYear: 2016,
     plinthElevationCm: 45,
     floorsCount: 2,
   });
 
-  // Toast notification for user actions
+  // Toast notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -57,7 +74,6 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Compute risk deterministically using the separate riskEngine service
   const riskResult = useMemo(() => {
     return computeCatastropheRisk({
       location: selectedLocation,
@@ -66,12 +82,10 @@ export default function App() {
     });
   }, [selectedLocation, selectedDisaster, radiusKm]);
 
-  // Compute property loss
   const lossResult = useMemo(() => {
     return calculatePropertyLoss(property, selectedDisaster, riskResult);
   }, [property, selectedDisaster, riskResult]);
 
-  // Compute insurance pricing
   const insuranceResult = useMemo(() => {
     const totalSum = property.propertyValue + property.contentsValue;
     return computeIndicativeInsurance({
@@ -84,10 +98,32 @@ export default function App() {
     });
   }, [property, selectedDisaster, riskResult]);
 
-  // Handlers
+  const handleIntroComplete = () => {
+    try {
+      sessionStorage.setItem('risklens_intro_completed', 'true');
+    } catch {
+      // Ignore
+    }
+    setAppStage('login');
+  };
+
   const handleLogin = (name: string, role: string) => {
     setUserProfile({ name, role });
+    setAppStage('loading');
+  };
+
+  const handleDashboardLoaded = () => {
     setIsAuthenticated(true);
+    setAppStage('dashboard');
+  };
+
+  const handleReplayIntro = () => {
+    setAppStage('intro');
+  };
+
+  const handleSwitchUser = () => {
+    setIsAuthenticated(false);
+    setAppStage('login');
   };
 
   const handleSelectLocation = (loc: LocationData) => {
@@ -97,14 +133,14 @@ export default function App() {
 
   const handleSelectCoordinates = (lat: number, lng: number, placeName?: string) => {
     const updated: LocationData = {
-      name: placeName || `Point (${lat.toFixed(3)}°, ${lng.toFixed(3)}°)`,
-      district: 'Selected Grid Area',
+      name: placeName || `Selected Location (${lat.toFixed(3)}°, ${lng.toFixed(3)}°)`,
+      district: 'Tamil Nadu',
       lat,
       lng,
       elevationMeters: 8,
       distanceToCoastKm: Math.abs(lng - 80.25) * 111,
       distanceToWaterbodyM: 900,
-      seismicZone: 'Zone III (Moderate)',
+      seismicZone: lat > 11.0 ? 'Zone III (Moderate)' : 'Zone II (Low)',
     };
     setSelectedLocation(updated);
     showToast(`Location set to Lat ${lat.toFixed(3)}°, Lng ${lng.toFixed(3)}°`);
@@ -130,13 +166,35 @@ export default function App() {
     }
   };
 
-  // If not authenticated, show the animated login page with the 4 background views
-  if (!isAuthenticated) {
-    return <LoginScreen onLogin={handleLogin} />;
+  // Stage 1: Cinematic Intro Animation
+  if (appStage === 'intro') {
+    return <CinematicIntro onComplete={handleIntroComplete} />;
   }
 
+  // Stage 2: Login / Role Selection Screen
+  if (appStage === 'login' || !isAuthenticated && appStage !== 'loading') {
+    return (
+      <LoginScreen
+        onLogin={handleLogin}
+        onReplayIntro={handleReplayIntro}
+      />
+    );
+  }
+
+  // Stage 3: Dashboard Loading Transition
+  if (appStage === 'loading') {
+    return (
+      <DashboardLoader
+        userName={userProfile.name}
+        userRole={userProfile.role}
+        onLoaded={handleDashboardLoaded}
+      />
+    );
+  }
+
+  // Stage 4: Main Dashboard
   const stepTitles = [
-    'Location & Scope',
+    'GIS Map & Hazard Selection',
     'Catastrophe Peril',
     'Risk Summary & Simulation',
     'Loss Calculator',
@@ -145,27 +203,28 @@ export default function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0e1321] text-[#dee2f6] flex flex-col font-sans selection:bg-[#4cd7f6] selection:text-[#003640]">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] flex flex-col font-sans selection:bg-[#059669]/20 selection:text-[#059669]">
       {/* Top Navigation Bar */}
       <Header
         currentStep={currentStep}
         totalSteps={6}
         stepTitle={stepTitles[currentStep - 1]}
-        onGoBack={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
+        onGoBack={() => setCurrentStep((prev) => (prev === 3 ? 1 : Math.max(1, prev - 1)))}
         onNavigateStep={(step) => setCurrentStep(step)}
         userRole={userProfile.role}
-        onSwitchUser={() => setIsAuthenticated(false)}
+        onSwitchUser={handleSwitchUser}
+        onReplayIntro={handleReplayIntro}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-20 pb-24 flex flex-col space-y-6">
-        {/* Step Progress Tracker Pill (Mobile view) */}
-        <div className="flex md:hidden items-center justify-between bg-[#161b2a] border border-[#252a39] p-3 rounded-2xl">
+        {/* Step Progress Tracker (Mobile view) */}
+        <div className="flex md:hidden items-center justify-between bg-white border border-[#E2E8F0] p-3 rounded-2xl shadow-xs">
           <div className="flex items-center space-x-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#4cd7f6]/10 text-[#4cd7f6] font-mono text-[11px] font-semibold border border-[#4cd7f6]/20">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] font-mono text-[11px] font-semibold border border-[#A7F3D0]">
               Step {currentStep} of 6
             </span>
-            <span className="text-xs text-[#bcc9cd] font-medium truncate max-w-[170px]">
+            <span className="text-xs text-[#64748B] font-medium truncate max-w-[170px]">
               {stepTitles[currentStep - 1]}
             </span>
           </div>
@@ -174,8 +233,8 @@ export default function App() {
             {currentStep > 1 && (
               <button
                 type="button"
-                onClick={() => setCurrentStep((prev) => prev - 1)}
-                className="w-7 h-7 rounded-full bg-[#252a39] flex items-center justify-center text-[#dee2f6]"
+                onClick={() => setCurrentStep((prev) => (prev === 3 ? 1 : prev - 1))}
+                className="w-7 h-7 rounded-full bg-[#F1F5F9] flex items-center justify-center text-[#1E293B]"
               >
                 <span className="material-symbols-outlined text-[16px]">chevron_left</span>
               </button>
@@ -183,8 +242,8 @@ export default function App() {
             {currentStep < 6 && (
               <button
                 type="button"
-                onClick={() => setCurrentStep((prev) => prev + 1)}
-                className="w-7 h-7 rounded-full bg-[#4cd7f6] flex items-center justify-center text-[#003640]"
+                onClick={() => setCurrentStep((prev) => (prev === 1 ? 3 : prev + 1))}
+                className="w-7 h-7 rounded-full bg-[#059669] flex items-center justify-center text-white"
               >
                 <span className="material-symbols-outlined text-[16px]">chevron_right</span>
               </button>
@@ -192,104 +251,164 @@ export default function App() {
           </div>
         </div>
 
-        {/* STEP 1: Search & Interactive Leaflet Map */}
+        {/* STEP 1: Fully Integrated Tamil Nilam GIS Map & Risk Selection Flow */}
         {currentStep === 1 && (
           <div className="flex flex-col space-y-6">
             <div className="space-y-1">
-              <span className="px-2.5 py-0.5 rounded-full bg-[#4cd7f6]/10 text-[#4cd7f6] font-mono text-[11px] font-semibold uppercase tracking-wider border border-[#4cd7f6]/20">
+              <span className="px-2.5 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] font-mono text-[11px] font-semibold uppercase tracking-wider border border-[#A7F3D0]">
                 Step 1 of 6
               </span>
-              <h2 className="font-space font-extrabold text-2xl sm:text-3xl text-white">
-                Select Your Tamil Nadu Location
+              <h2 className="font-space font-extrabold text-2xl sm:text-3xl text-[#1E293B]">
+                Tamil Nadu Catastrophe GIS Explorer
               </h2>
-              <p className="text-xs sm:text-sm text-[#bcc9cd]">
-                Search for your city, town, or district in Tamil Nadu, or use your GPS location.
+              <p className="text-xs sm:text-sm text-[#64748B]">
+                Search for a location, inspect terrain layers, adjust the analysis radius, and analyze catastrophe risk.
               </p>
             </div>
 
-            {/* Location Search Input */}
+            {/* 1. Location Search Field */}
             <LocationSearch
               selectedLocation={selectedLocation}
               onSelectLocation={handleSelectLocation}
             />
 
-            {/* Interactive Leaflet Map with Radius Slider */}
+            {/* Admin Dashboard: Cadastral Building Colors Summary Card */}
+            <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2E8F0] pb-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-8 h-8 rounded-xl bg-[#059669]/10 text-[#059669] flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[18px]">domain</span>
+                  </span>
+                  <div>
+                    <h3 className="font-space font-bold text-sm sm:text-base text-[#1E293B] flex items-center gap-2">
+                      <span>Admin Cadastral Building Risk Analysis</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] font-bold border border-[#A7F3D0]">
+                        {userProfile.role}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-[#64748B]">
+                      Cadastral building footprints color-coded by flood runoff &amp; structural vulnerability tier.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-mono">
+                  <span className="text-[#64748B]">Spatial Accuracy:</span>
+                  <span className="font-bold text-[#059669]">WGS-84 Cadastre</span>
+                </div>
+              </div>
+
+              {/* Building Color Metric Bars */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* 🔴 Red: High Risk */}
+                <div className="p-3 rounded-xl bg-red-50/60 border border-red-200/80 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-3.5 h-3.5 rounded-md bg-[#DC2626] shadow-xs" />
+                    <div>
+                      <div className="text-xs font-bold text-red-950 font-space">Red: High Risk</div>
+                      <div className="text-[11px] text-red-700">Low plinth (&lt;25cm), direct runoff</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono font-bold text-sm text-[#DC2626]">31%</span>
+                    <span className="text-[10px] text-red-600 block">4 Structures</span>
+                  </div>
+                </div>
+
+                {/* 🟠 Amber: Moderate Risk */}
+                <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200/80 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-3.5 h-3.5 rounded-md bg-[#D97706] shadow-xs" />
+                    <div>
+                      <div className="text-xs font-bold text-amber-950 font-space">Amber: Moderate</div>
+                      <div className="text-[11px] text-amber-700">Standard plinth, partial drainage</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono font-bold text-sm text-[#D97706]">38%</span>
+                    <span className="text-[10px] text-amber-600 block">5 Structures</span>
+                  </div>
+                </div>
+
+                {/* 🟢 Green: Resilient / Low Risk */}
+                <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/80 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-3.5 h-3.5 rounded-md bg-[#059669] shadow-xs" />
+                    <div>
+                      <div className="text-xs font-bold text-emerald-950 font-space">Green: Resilient</div>
+                      <div className="text-[11px] text-emerald-700">High plinth (&ge;60cm), sump valves</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono font-bold text-sm text-[#059669]">31%</span>
+                    <span className="text-[10px] text-emerald-600 block">4 Structures</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Interactive GIS Leaflet Map with Tamil Nilam Layer Control Panel & Radius Slider */}
             <InteractiveMap
               selectedLocation={selectedLocation}
               radiusKm={radiusKm}
               onRadiusChange={setRadiusKm}
               onSelectCoordinates={handleSelectCoordinates}
               disasterType={selectedDisaster}
+              userRole={userProfile.role}
             />
 
-            {/* Proceed Action */}
+            {/* 3. Catastrophe Peril Selection */}
+            <DisasterSelector
+              selectedDisaster={selectedDisaster}
+              onSelectDisaster={setSelectedDisaster}
+            />
+
+            {/* 4. Primary "Analyze Risk" CTA */}
             <div className="pt-2">
               <button
                 type="button"
-                onClick={() => setCurrentStep(2)}
-                className="w-full h-14 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#04b4a2] hover:brightness-110 text-[#003640] font-space font-bold text-base flex items-center justify-center space-x-2 shadow-lg active:scale-95 transition-all cursor-pointer"
+                onClick={() => setCurrentStep(3)}
+                className="w-full h-14 rounded-full bg-[#059669] hover:bg-[#047857] text-white font-space font-extrabold text-base flex items-center justify-center space-x-2 shadow-sm active:scale-95 transition-all cursor-pointer"
               >
-                <span>Confirm Location &amp; Choose Disaster (Step 2)</span>
+                <span>Analyze Risk for {selectedLocation.name.split(',')[0]}</span>
                 <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
               </button>
             </div>
           </div>
         )}
 
-        {/* STEP 2: Disaster Peril Selection */}
+        {/* STEP 2: Peril Details */}
         {currentStep === 2 && (
           <div className="flex flex-col space-y-6">
             <div className="space-y-1">
-              <span className="px-2.5 py-0.5 rounded-full bg-[#4cd7f6]/10 text-[#4cd7f6] font-mono text-[11px] font-semibold uppercase tracking-wider border border-[#4cd7f6]/20">
+              <span className="px-2.5 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] font-mono text-[11px] font-semibold uppercase tracking-wider border border-[#A7F3D0]">
                 Step 2 of 6
               </span>
-              <h2 className="font-space font-extrabold text-2xl sm:text-3xl text-white">
-                Choose Catastrophe Peril
+              <h2 className="font-space font-extrabold text-2xl sm:text-3xl text-[#1E293B]">
+                Selected Hazard Peril
               </h2>
-              <p className="text-xs sm:text-sm text-[#bcc9cd]">
-                Select which hazard scenario to model for {selectedLocation.name}.
+              <p className="text-xs sm:text-sm text-[#64748B]">
+                Review the modeled catastrophe scenario for {selectedLocation.name}.
               </p>
             </div>
 
-            {/* Selected Location Pill */}
-            <div className="bg-[#161b2a] border border-[#252a39] p-4 rounded-2xl flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-[#4cd7f6] text-[22px]">location_on</span>
-                <div>
-                  <div className="font-bold text-sm text-white">{selectedLocation.name}</div>
-                  <div className="text-xs text-[#869397]">
-                    {selectedLocation.district} District · {selectedLocation.elevationMeters}m MSL Elevation
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setCurrentStep(1)}
-                className="text-xs font-mono text-[#4cd7f6] hover:underline"
-              >
-                Change
-              </button>
-            </div>
-
-            {/* Disaster Peril Selector */}
             <DisasterSelector
               selectedDisaster={selectedDisaster}
               onSelectDisaster={setSelectedDisaster}
             />
 
-            {/* Proceed Action */}
             <div className="pt-4 flex flex-col sm:flex-row gap-3">
               <button
                 type="button"
                 onClick={() => setCurrentStep(1)}
-                className="h-14 px-6 rounded-full bg-[#161b2a] text-[#dee2f6] font-space font-medium text-sm flex items-center justify-center border border-[#303444]"
+                className="h-14 px-6 rounded-full bg-white text-[#1E293B] font-space font-medium text-sm flex items-center justify-center border border-[#CBD5E1] hover:bg-[#F8FAFC]"
               >
-                Back to Location
+                Back to Map
               </button>
               <button
                 type="button"
                 onClick={() => setCurrentStep(3)}
-                className="flex-1 h-14 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#04b4a2] hover:brightness-110 text-[#003640] font-space font-bold text-base flex items-center justify-center space-x-2 shadow-lg active:scale-95 transition-all cursor-pointer"
+                className="flex-1 h-14 rounded-full bg-[#059669] hover:bg-[#047857] text-white font-space font-bold text-base flex items-center justify-center space-x-2 shadow-sm active:scale-95 transition-all cursor-pointer"
               >
                 <span>Compute Risk &amp; View Incident (Step 3)</span>
                 <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
@@ -298,10 +417,9 @@ export default function App() {
           </div>
         )}
 
-        {/* STEP 3: Risk Summary & 10-Second Simulation Viewer (The exported Stitch UI!) */}
+        {/* STEP 3: Risk Summary & 10-Second Simulation Viewer */}
         {currentStep === 3 && (
           <div className="flex flex-col space-y-8">
-            {/* The exported Stitch UI Risk Summary View */}
             <RiskSummaryView
               riskResult={riskResult}
               onEstimateLoss={() => setCurrentStep(4)}
@@ -309,8 +427,7 @@ export default function App() {
               onDownloadPdf={handleDownloadRiskPdf}
             />
 
-            {/* The 10-second interactive scenario simulation viewer */}
-            <div className="pt-4 border-t border-[#252a39]">
+            <div className="pt-4 border-t border-[#E2E8F0]">
               <SimulationViewer
                 location={selectedLocation}
                 disasterType={selectedDisaster}
@@ -356,15 +473,15 @@ export default function App() {
       </main>
 
       {/* Floating Bottom Quick Action Bar for Desktop / Tablet */}
-      <div className="fixed bottom-0 inset-x-0 bg-[#0e1321]/90 backdrop-blur-xl border-t border-[#252a39] py-3 px-4 z-40">
+      <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-[#E2E8F0] py-3 px-4 z-40 shadow-[0_-1px_6px_rgba(0,0,0,0.05)]">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 text-xs font-mono text-[#bcc9cd] truncate">
-            <span className="text-[#4cd7f6] font-bold">RiskLens TN:</span>
-            <span className="text-white font-medium truncate">{selectedLocation.name}</span>
+          <div className="flex items-center gap-3 text-xs font-mono text-[#64748B] truncate">
+            <span className="text-[#059669] font-bold">RiskLens TN:</span>
+            <span className="text-[#1E293B] font-medium truncate">{selectedLocation.name}</span>
             <span>·</span>
-            <span className="capitalize text-[#4fdbc8]">{selectedDisaster}</span>
+            <span className="capitalize text-[#0D9488] font-medium">{selectedDisaster}</span>
             <span>·</span>
-            <span>Score: <strong className="text-white">{riskResult.vulnerabilityIndex}/100</strong></span>
+            <span>Score: <strong className="text-[#1E293B]">{riskResult.vulnerabilityIndex}/100</strong></span>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -372,9 +489,9 @@ export default function App() {
               type="button"
               onClick={handleDownloadRiskPdf}
               title="Download Risk PDF"
-              className="px-3 py-1.5 rounded-full bg-[#1a1f2e] border border-[#303444] hover:border-[#4cd7f6] text-xs font-mono text-[#dee2f6] flex items-center gap-1.5 transition-all"
+              className="px-3.5 py-1.5 rounded-full bg-[#F8FAFC] border border-[#CBD5E1] hover:border-[#059669] text-xs font-mono text-[#1E293B] flex items-center gap-1.5 transition-all cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[16px] text-[#4cd7f6]">picture_as_pdf</span>
+              <span className="material-symbols-outlined text-[16px] text-[#059669]">picture_as_pdf</span>
               <span className="hidden sm:inline">Risk PDF</span>
             </button>
 
@@ -382,9 +499,9 @@ export default function App() {
               type="button"
               onClick={handleDownloadInsurancePdf}
               title="Download Pricing PDF"
-              className="px-3 py-1.5 rounded-full bg-[#1a1f2e] border border-[#303444] hover:border-[#4fdbc8] text-xs font-mono text-[#dee2f6] flex items-center gap-1.5 transition-all"
+              className="px-3.5 py-1.5 rounded-full bg-[#F8FAFC] border border-[#CBD5E1] hover:border-[#0D9488] text-xs font-mono text-[#1E293B] flex items-center gap-1.5 transition-all cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[16px] text-[#4fdbc8]">receipt_long</span>
+              <span className="material-symbols-outlined text-[16px] text-[#0D9488]">receipt_long</span>
               <span className="hidden sm:inline">Pricing PDF</span>
             </button>
           </div>
@@ -393,8 +510,8 @@ export default function App() {
 
       {/* Toast Feedback Notification */}
       {toastMessage && (
-        <div className="fixed bottom-16 right-4 z-50 bg-[#161b2a] border border-[#4cd7f6] rounded-2xl px-4 py-3 text-xs font-mono text-white shadow-2xl flex items-center gap-2 animate-bounce">
-          <span className="material-symbols-outlined text-[#4cd7f6] text-[18px]">check_circle</span>
+        <div className="fixed bottom-16 right-4 z-50 bg-white border border-[#059669] rounded-2xl px-4 py-3 text-xs font-mono text-[#1E293B] shadow-xl flex items-center gap-2 animate-bounce">
+          <span className="material-symbols-outlined text-[#059669] text-[18px]">check_circle</span>
           <span>{toastMessage}</span>
         </div>
       )}

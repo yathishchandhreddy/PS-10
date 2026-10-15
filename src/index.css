@@ -1,28 +1,42 @@
 @import "tailwindcss";
 
 @theme {
-  --color-surface: #0e1321;
-  --color-surface-dim: #0e1321;
-  --color-surface-bright: #343948;
-  --color-surface-container-lowest: #090e1c;
-  --color-surface-container-low: #161b2a;
-  --color-surface-container: #1a1f2e;
-  --color-surface-container-high: #252a39;
-  --color-surface-container-highest: #303444;
-  --color-surface-variant: #303444;
-  --color-on-surface: #dee2f6;
-  --color-on-surface-variant: #bcc9cd;
-  --color-outline: #869397;
-  --color-outline-variant: #3d494c;
-  --color-primary: #4cd7f6;
-  --color-on-primary: #003640;
-  --color-primary-container: #06b6d4;
-  --color-secondary: #4fdbc8;
-  --color-on-secondary: #003731;
-  --color-secondary-container: #04b4a2;
-  --color-tertiary: #d0bcff;
-  --color-error: #ffb4ab;
-  --color-error-container: #93000a;
+  --color-main-bg: #F8FAFC;
+  --color-card-bg: #FFFFFF;
+  --color-primary-green: #059669;
+  --color-secondary-teal: #0D9488;
+  --color-accent-blue: #0EA5E9;
+  --color-text-primary: #1E293B;
+  --color-text-secondary: #64748B;
+  --color-border-subtle: #E2E8F0;
+  --color-risk-high: #DC2626;
+  --color-risk-moderate: #D97706;
+  --color-risk-low: #059669;
+
+  /* Theme mappings */
+  --color-surface: #FFFFFF;
+  --color-surface-dim: #F8FAFC;
+  --color-surface-bright: #FFFFFF;
+  --color-surface-container-lowest: #FFFFFF;
+  --color-surface-container-low: #F8FAFC;
+  --color-surface-container: #F1F5F9;
+  --color-surface-container-high: #E2E8F0;
+  --color-surface-container-highest: #CBD5E1;
+  --color-surface-variant: #F1F5F9;
+  --color-on-surface: #1E293B;
+  --color-on-surface-variant: #64748B;
+  --color-outline: #E2E8F0;
+  --color-outline-variant: #CBD5E1;
+  --color-primary: #059669;
+  --color-on-primary: #FFFFFF;
+  --color-primary-container: #D1FAE5;
+  --color-secondary: #0D9488;
+  --color-on-secondary: #FFFFFF;
+  --color-secondary-container: #CCFBF1;
+  --color-tertiary: #0EA5E9;
+  --color-error: #DC2626;
+  --color-error-container: #FEE2E2;
+
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   --font-mono: "Space Grotesk", monospace;
   --font-space: "Space Grotesk", sans-serif;
@@ -30,27 +44,27 @@
 
 @layer base {
   body {
-    background-color: #0e1321;
-    color: #dee2f6;
+    background-color: #F8FAFC;
+    color: #1E293B;
     font-family: 'Plus Jakarta Sans', sans-serif;
     overflow-x: hidden;
   }
 }
 
-/* Custom scrollbars */
+/* Custom light scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #090e1c;
+  background: #F8FAFC;
 }
 ::-webkit-scrollbar-thumb {
-  background: #252a39;
+  background: #CBD5E1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #4cd7f6;
+  background: #059669;
 }
 
 /* Material symbol styling */
@@ -73,44 +87,107 @@
   line-height: 1;
 }
 
-/* Leaflet dark theme map enhancements */
+/* Leaflet clean light theme styling */
 .leaflet-container {
   width: 100%;
   height: 100%;
-  background-color: #090e1c !important;
+  background-color: #F1F5F9 !important;
   font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
+/* Natural light map tiles without dark filters */
 .leaflet-tile {
-  filter: brightness(0.65) invert(1) contrast(3) hue-rotate(200deg) saturate(0.35);
+  filter: none !important;
 }
 
 .leaflet-control-zoom a {
-  background: #1a1f2e !important;
-  color: #dee2f6 !important;
-  border-color: #303444 !important;
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
 }
 .leaflet-control-zoom a:hover {
-  background: #252a39 !important;
-  color: #4cd7f6 !important;
+  background: #F8FAFC !important;
+  color: #059669 !important;
 }
 
 .leaflet-popup-content-wrapper {
-  background: #1a1f2e !important;
-  color: #dee2f6 !important;
-  border: 1px solid #303444 !important;
-  border-radius: 12px !important;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
 }
 .leaflet-popup-tip {
-  background: #1a1f2e !important;
+  background: #FFFFFF !important;
 }
 
-@keyframes pulse-subtle {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.02); }
+/* Map opening animations: radar sweep, sonar wave, and scanline */
+@keyframes radar-sweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.animate-pulse-subtle {
-  animation: pulse-subtle 4s ease-in-out infinite;
+.animate-radar-sweep {
+  animation: radar-sweep 2.8s linear infinite;
 }
+
+@keyframes sonar-ripple {
+  0% {
+    transform: scale(0.2);
+    opacity: 0.85;
+  }
+  70% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.animate-sonar-1 {
+  animation: sonar-ripple 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-sonar-2 {
+  animation: sonar-ripple 2.2s cubic-bezier(0, 0, 0.2, 1) infinite 0.7s;
+}
+
+.animate-sonar-3 {
+  animation: sonar-ripple 2.2s cubic-bezier(0, 0, 0.2, 1) infinite 1.4s;
+}
+
+@keyframes map-scanline {
+  0% {
+    top: -10%;
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.7;
+  }
+  100% {
+    top: 105%;
+    opacity: 0;
+  }
+}
+
+.animate-map-scanline {
+  animation: map-scanline 2s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

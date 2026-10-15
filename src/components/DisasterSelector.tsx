@@ -18,6 +18,7 @@ export const DisasterSelector: React.FC<DisasterSelectorProps> = ({
     tag: string;
     tagColor: string;
     activeBorder: string;
+    activeBg: string;
   }[] = [
     {
       id: 'flood',
@@ -25,8 +26,9 @@ export const DisasterSelector: React.FC<DisasterSelectorProps> = ({
       sublabel: 'Surface Inundation & Cloudburst Runoff',
       icon: 'flood',
       tag: 'Primary Monsoon Risk',
-      tagColor: 'bg-[#4cd7f6]/15 text-[#4cd7f6] border-[#4cd7f6]/30',
-      activeBorder: 'border-[#4cd7f6] shadow-[0_0_20px_rgba(76,215,246,0.3)]',
+      tagColor: 'bg-[#E0F2FE] text-[#0369A1] border-[#BAE6FD]',
+      activeBorder: 'border-[#0EA5E9] ring-2 ring-[#0EA5E9]/20 shadow-sm',
+      activeBg: 'bg-[#F0F9FF]',
     },
     {
       id: 'cyclone',
@@ -34,8 +36,9 @@ export const DisasterSelector: React.FC<DisasterSelectorProps> = ({
       sublabel: 'Bay of Bengal Landfall & Gale Gusts',
       icon: 'air',
       tag: 'Coastal Wind Risk',
-      tagColor: 'bg-[#4fdbc8]/15 text-[#4fdbc8] border-[#4fdbc8]/30',
-      activeBorder: 'border-[#4fdbc8] shadow-[0_0_20px_rgba(79,219,200,0.3)]',
+      tagColor: 'bg-[#CCFBF1] text-[#0F766E] border-[#99F6E4]',
+      activeBorder: 'border-[#0D9488] ring-2 ring-[#0D9488]/20 shadow-sm',
+      activeBg: 'bg-[#F0FDFA]',
     },
     {
       id: 'earthquake',
@@ -43,19 +46,20 @@ export const DisasterSelector: React.FC<DisasterSelectorProps> = ({
       sublabel: 'Peninsular Shield Zone II & III Tremors',
       icon: 'earthquake',
       tag: 'Seismic Baselines',
-      tagColor: 'bg-[#d0bcff]/15 text-[#d0bcff] border-[#d0bcff]/30',
-      activeBorder: 'border-[#d0bcff] shadow-[0_0_20px_rgba(208,188,255,0.3)]',
+      tagColor: 'bg-[#F3E8FF] text-[#6B21A8] border-[#E9D5FF]',
+      activeBorder: 'border-[#9333EA] ring-2 ring-[#9333EA]/20 shadow-sm',
+      activeBg: 'bg-[#FAF5FF]',
     },
   ];
 
   return (
     <div className="w-full space-y-2">
       <div className="flex items-center justify-between px-1">
-        <label className="text-xs font-mono font-bold text-[#bcc9cd] uppercase tracking-wider flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[16px] text-[#4cd7f6]">warning</span>
+        <label className="text-xs font-mono font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-[16px] text-[#059669]">warning</span>
           <span>Select Catastrophe Peril</span>
         </label>
-        <span className="text-[11px] font-mono text-[#869397]">Independent Risk Models</span>
+        <span className="text-[11px] font-mono text-[#64748B]">Independent Risk Models</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -66,17 +70,17 @@ export const DisasterSelector: React.FC<DisasterSelectorProps> = ({
               key={opt.id}
               type="button"
               onClick={() => onSelectDisaster(opt.id)}
-              className={`p-4 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+              className={`p-4 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
                 isSelected
-                  ? `bg-[#1a1f2e] ${opt.activeBorder}`
-                  : 'bg-[#161b2a]/80 border-[#252a39] hover:border-[#303444] opacity-80 hover:opacity-100'
+                  ? `${opt.activeBg} ${opt.activeBorder}`
+                  : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1] shadow-xs'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <div
                     className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                      isSelected ? 'bg-[#090e1c] text-[#4cd7f6]' : 'bg-[#1a1f2e] text-[#869397]'
+                      isSelected ? 'bg-white text-[#059669] shadow-xs' : 'bg-[#F8FAFC] text-[#64748B]'
                     }`}
                   >
                     <span className="material-symbols-outlined text-[20px]">{opt.icon}</span>
@@ -86,13 +90,13 @@ export const DisasterSelector: React.FC<DisasterSelectorProps> = ({
                   </span>
                 </div>
 
-                <div className="font-space font-bold text-sm text-white">{opt.label}</div>
-                <div className="text-[11px] text-[#bcc9cd] mt-0.5">{opt.sublabel}</div>
+                <div className="font-space font-bold text-sm text-[#1E293B]">{opt.label}</div>
+                <div className="text-[11px] text-[#64748B] mt-0.5">{opt.sublabel}</div>
               </div>
 
               {isSelected && (
-                <div className="mt-3 flex items-center gap-1 text-[11px] font-mono text-[#4cd7f6]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#4cd7f6] animate-pulse" />
+                <div className="mt-3 flex items-center gap-1.5 text-[11px] font-mono text-[#059669] font-semibold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse" />
                   <span>Model Active</span>
                 </div>
               )}

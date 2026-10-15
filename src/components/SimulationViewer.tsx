@@ -19,7 +19,6 @@ export const SimulationViewer: React.FC<SimulationViewerProps> = ({
   const totalTime = 10.0;
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Dynamic stages tailored to disaster peril and location
   const getStages = () => {
     if (disasterType === 'flood') {
       return [
@@ -28,7 +27,7 @@ export const SimulationViewer: React.FC<SimulationViewerProps> = ({
           max: 2,
           milestone: '0-2s',
           tabName: 'TN View',
-          label: `0-2s • Tamil Nadu Basin & ${location.district} Regional Grid`,
+          label: `0-2s • Tamil Nadu Basin & ${location.district} Grid`,
           depth: '+0.00m MSL',
           waterStatus: 'Precipitation Inflow',
           description: `IMD radar detects deep depression over Bay of Bengal channel discharging ~180mm into ${location.name} catchment.`,
@@ -58,7 +57,6 @@ export const SimulationViewer: React.FC<SimulationViewerProps> = ({
           depth: '+0.42m Expected',
           waterStatus: 'Drainage Saturated',
           description: 'High surface runoff vectors push excess volume toward residential boundaries and low-lying road networks.',
-          // The Stitch export image
           imageUrl:
             'https://lh3.googleusercontent.com/aida-public/AB6AXuAuuwCazU5HQHIaoXF5mYTVTz81bU2Ll7cC4dVx5GRJYjoOmJrQpwd34QFKwIWKjr5qtjEglcwfqL-QhoUxYMeSEUdITY86E1Ul0aYarkUu3HY5NjZzm2B4qxq8LXsaiP3Pe5m-tlqbeXG4UFGH2dZRTLIFfoiDlmAhbPXu9y_sK6w2XqB822HAI7cJ1kYyZr8Y4HbnW7HNsXOxGSUhz1lvj3KWU6V16dZTS2RH2GEMr2Tw2pYtdjQKoA',
           vectorOverlay: true,
@@ -159,7 +157,6 @@ export const SimulationViewer: React.FC<SimulationViewerProps> = ({
         },
       ];
     } else {
-      // Earthquake
       return [
         {
           min: 0,
@@ -233,7 +230,6 @@ export const SimulationViewer: React.FC<SimulationViewerProps> = ({
   const stages = getStages();
   const currentStage = stages.find((s) => currentTime <= s.max) || stages[stages.length - 1];
 
-  // Play / Pause timer
   useEffect(() => {
     if (isPlaying) {
       timerRef.current = setInterval(() => {
@@ -268,72 +264,69 @@ export const SimulationViewer: React.FC<SimulationViewerProps> = ({
       {/* Title & Truth In Labeling Header */}
       <div className="flex flex-col px-1">
         <div className="flex items-center space-x-2">
-          <span className="material-symbols-outlined text-[#4cd7f6] text-[20px]">movie_filter</span>
-          <span className="text-white font-space font-bold text-base sm:text-lg">
+          <span className="material-symbols-outlined text-[#059669] text-[20px]">movie_filter</span>
+          <span className="text-[#1E293B] font-space font-bold text-base sm:text-lg">
             See What Could Happen Here
           </span>
         </div>
-        <span className="text-[#bcc9cd] font-mono text-[11px] mt-0.5">
+        <span className="text-[#64748B] font-mono text-[11px] mt-0.5">
           Illustrative Disaster Scenario • Scenario-Based Model, Not a Guarantee
         </span>
       </div>
 
       {/* Player Screen Frame */}
-      <div className="relative bg-[#090e1c] border border-[#252a39] rounded-3xl overflow-hidden shadow-2xl">
+      <div className="relative bg-white border border-[#E2E8F0] rounded-3xl overflow-hidden shadow-xs">
         {/* Simulation Stage Viewport */}
-        <div className="relative w-full h-64 sm:h-72 md:h-80 bg-[#1a1f2e] overflow-hidden flex items-center justify-center">
-          {/* Rendered GIS Inundation / Storm Simulation Image */}
+        <div className="relative w-full h-64 sm:h-72 md:h-80 bg-slate-900 overflow-hidden flex items-center justify-center">
           <img
             src={currentStage.imageUrl}
             alt={currentStage.label}
             className="w-full h-full object-cover filter brightness-90 transition-opacity duration-300"
           />
 
-          {/* Dark gradient vignette */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0e1321] via-transparent to-[#0e1321]/60 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/40 pointer-events-none" />
 
-          {/* Dynamic Animated Runoff Vector Arrows overlay if active */}
           {currentStage.vectorOverlay && (
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <svg className="w-full h-full opacity-60" viewBox="0 0 400 200">
+              <svg className="w-full h-full opacity-70" viewBox="0 0 400 200">
                 <defs>
-                  <marker id="cyanArrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-                    <polygon points="0 0, 6 3, 0 6" fill="#4cd7f6" />
+                  <marker id="cyanArrowLight" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                    <polygon points="0 0, 6 3, 0 6" fill="#38BDF8" />
                   </marker>
                 </defs>
                 <path
                   d="M 50 160 Q 150 120 220 140 T 350 180"
                   fill="transparent"
-                  stroke="#4cd7f6"
+                  stroke="#38BDF8"
                   strokeWidth="3"
                   strokeDasharray="8 6"
-                  markerEnd="url(#cyanArrow)"
+                  markerEnd="url(#cyanArrowLight)"
                   className="animate-pulse"
                 />
                 <path
                   d="M 80 180 Q 180 150 260 170 T 380 190"
                   fill="transparent"
-                  stroke="#4fdbc8"
+                  stroke="#34D399"
                   strokeWidth="2.5"
                   strokeDasharray="6 4"
-                  markerEnd="url(#cyanArrow)"
+                  markerEnd="url(#cyanArrowLight)"
                 />
               </svg>
             </div>
           )}
 
-          {/* Dynamic Scenario Stage Overlay Label (Top Left) */}
-          <div className="absolute top-3 left-3 bg-[#090e1c]/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center space-x-2">
-            <span className="w-2 h-2 rounded-full bg-[#4cd7f6] animate-ping" />
-            <span className="font-mono text-[11px] text-white font-medium">
+          {/* Dynamic Scenario Stage Label (Top Left) */}
+          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#E2E8F0] shadow-sm flex items-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-[#059669] animate-ping" />
+            <span className="font-mono text-[11px] text-[#1E293B] font-semibold">
               {currentStage.label}
             </span>
           </div>
 
-          {/* Simulation HUD Readout Tag (Top Right) */}
-          <div className="absolute top-3 right-3 bg-[#090e1c]/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center space-x-1.5">
-            <span className="material-symbols-outlined text-[#ffb4ab] text-[15px]">water_do</span>
-            <span className="font-mono text-[11px] font-bold text-white">
+          {/* Simulation Readout (Top Right) */}
+          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#E2E8F0] shadow-sm flex items-center space-x-1.5">
+            <span className="material-symbols-outlined text-[#DC2626] text-[15px]">water_do</span>
+            <span className="font-mono text-[11px] font-bold text-[#1E293B]">
               {currentStage.depth}
             </span>
           </div>
@@ -343,7 +336,7 @@ export const SimulationViewer: React.FC<SimulationViewerProps> = ({
             type="button"
             onClick={togglePlay}
             aria-label={isPlaying ? 'Pause Simulation' : 'Play Simulation'}
-            className="absolute w-14 h-14 rounded-full bg-[#4cd7f6] hover:bg-[#acedff] text-[#003640] flex items-center justify-center shadow-[0_0_24px_rgba(76,215,246,0.6)] active:scale-95 transition-all cursor-pointer z-20"
+            className="absolute w-14 h-14 rounded-full bg-[#059669] hover:bg-[#047857] text-white flex items-center justify-center shadow-lg active:scale-95 transition-all cursor-pointer z-20"
           >
             <span className="material-symbols-outlined text-[32px]">
               {isPlaying ? 'pause' : 'play_arrow'}
@@ -351,31 +344,31 @@ export const SimulationViewer: React.FC<SimulationViewerProps> = ({
           </button>
 
           {/* In-scene Status Badges (Bottom Left & Right) */}
-          <div className="absolute bottom-3 left-3 bg-[#0e1321]/90 backdrop-blur-md px-3 py-1 rounded-xl border border-white/10 flex items-center gap-1.5 z-10">
-            <span className="material-symbols-outlined text-[#4fdbc8] text-[16px]">waves</span>
-            <span className="font-mono text-[11px] font-semibold text-[#71f8e4]">
+          <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-xl border border-[#E2E8F0] flex items-center gap-1.5 z-10 shadow-sm">
+            <span className="material-symbols-outlined text-[#0D9488] text-[16px]">waves</span>
+            <span className="font-mono text-[11px] font-semibold text-[#0D9488]">
               {currentStage.waterStatus}
             </span>
           </div>
 
-          <div className="absolute bottom-3 right-3 bg-[#0e1321]/90 backdrop-blur-md px-3 py-1 rounded-xl border border-white/10 flex items-center gap-1.5 z-10">
-            <span className="material-symbols-outlined text-[#bcc9cd] text-[14px]">schedule</span>
-            <span className="font-mono text-[11px] text-white">
+          <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-xl border border-[#E2E8F0] flex items-center gap-1.5 z-10 shadow-sm">
+            <span className="material-symbols-outlined text-[#64748B] text-[14px]">schedule</span>
+            <span className="font-mono text-[11px] text-[#1E293B] font-medium">
               {currentTime < 10 ? '0' : ''}{currentTime.toFixed(1)}s / 10s
             </span>
           </div>
         </div>
 
         {/* Narrative Sub-Panel */}
-        <div className="px-4 py-2.5 bg-[#0e1321] border-b border-[#252a39] flex items-center gap-2">
-          <span className="material-symbols-outlined text-[#4cd7f6] text-[16px] flex-shrink-0">info</span>
-          <p className="text-xs text-[#bcc9cd] truncate">
+        <div className="px-4 py-2.5 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center gap-2">
+          <span className="material-symbols-outlined text-[#059669] text-[16px] flex-shrink-0">info</span>
+          <p className="text-xs text-[#64748B] truncate">
             {currentStage.description}
           </p>
         </div>
 
         {/* Scrubber Timeline Bar */}
-        <div className="p-4 bg-[#161b2a] flex flex-col space-y-3">
+        <div className="p-4 bg-white flex flex-col space-y-3">
           {/* Interactive Progress Line */}
           <div
             onClick={(e) => {
@@ -384,10 +377,10 @@ export const SimulationViewer: React.FC<SimulationViewerProps> = ({
               const ratio = Math.max(0, Math.min(1, clickX / rect.width));
               seekTo(Number((ratio * totalTime).toFixed(1)));
             }}
-            className="relative w-full h-2.5 bg-[#252a39] rounded-full cursor-pointer overflow-hidden group"
+            className="relative w-full h-2.5 bg-[#E2E8F0] rounded-full cursor-pointer overflow-hidden group"
           >
             <div
-              className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-[#4fdbc8] to-[#4cd7f6] rounded-full transition-all duration-100"
+              className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-[#0D9488] to-[#059669] rounded-full transition-all duration-100"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -402,18 +395,18 @@ export const SimulationViewer: React.FC<SimulationViewerProps> = ({
                   key={stage.milestone}
                   type="button"
                   onClick={() => seekTo(targetSec)}
-                  className="flex flex-col items-center text-center group transition-all"
+                  className="flex flex-col items-center text-center group transition-all cursor-pointer"
                 >
                   <span
                     className={`font-mono text-[10px] ${
-                      isActive ? 'text-[#4cd7f6] font-bold' : 'text-[#869397] group-hover:text-white'
+                      isActive ? 'text-[#059669] font-bold' : 'text-[#64748B] group-hover:text-[#1E293B]'
                     }`}
                   >
                     {stage.milestone}
                   </span>
                   <span
                     className={`font-mono text-[9px] truncate w-full ${
-                      isActive ? 'text-[#4cd7f6] font-semibold' : 'text-[#869397]/70'
+                      isActive ? 'text-[#059669] font-semibold' : 'text-[#94A3B8]'
                     }`}
                   >
                     {stage.tabName}
