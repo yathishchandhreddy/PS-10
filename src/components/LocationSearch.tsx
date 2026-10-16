@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LocationData } from '../types';
-import { TN_REFERENCE_LOCATIONS } from '../services/dataSources';
+import { TN_REFERENCE_LOCATIONS, lookupTamilNaduGeodetics } from '../services/dataSources';
 
 interface LocationSearchProps {
   selectedLocation: LocationData;
@@ -71,17 +71,9 @@ export const LocationSearch: React.FC<LocationSearchProps> = ({
             const mapped: LocationData[] = data.map((item: any) => {
               const lat = parseFloat(item.lat);
               const lng = parseFloat(item.lon);
-              const distCoast = Math.max(0.5, Math.abs(lng - 80.25) * 111);
-
+              const placeName = item.display_name.split(',')[0] + ', ' + (item.display_name.split(',')[1]?.trim() || 'TN');
               return {
-                name: item.display_name.split(',')[0] + ', ' + (item.display_name.split(',')[1]?.trim() || 'TN'),
-                district: item.address?.state_district || item.address?.county || 'Tamil Nadu',
-                lat,
-                lng,
-                elevationMeters: distCoast < 5 ? 7 : Math.round(distCoast * 1.8 + 10),
-                distanceToCoastKm: distCoast,
-                distanceToWaterbodyM: 850,
-                seismicZone: lat > 11.0 ? 'Zone III (Moderate)' : 'Zone II (Low)',
+                ...lookupTamilNaduGeodetics(lat, lng, placeName),
                 isUserLocation: false,
               };
             });
@@ -127,21 +119,8 @@ export const LocationSearch: React.FC<LocationSearchProps> = ({
       (pos) => {
         setGeoLoading(false);
         const { latitude, longitude } = pos.coords;
-
-        const isTamilNadu =
-          latitude >= 7.8 && latitude <= 14.0 && longitude >= 76.0 && longitude <= 80.6;
-
         const newLoc: LocationData = {
-          name: isTamilNadu
-            ? `My Location (${latitude.toFixed(3)}°, ${longitude.toFixed(3)}°)`
-            : `GPS Location (${latitude.toFixed(3)}°, ${longitude.toFixed(3)}°)`,
-          district: isTamilNadu ? 'Tamil Nadu' : 'Outside TN Boundary',
-          lat: latitude,
-          lng: longitude,
-          elevationMeters: 10,
-          distanceToCoastKm: Math.abs(longitude - 80.25) * 111,
-          distanceToWaterbodyM: 950,
-          seismicZone: latitude > 11.0 ? 'Zone III (Moderate)' : 'Zone II (Low)',
+          ...lookupTamilNaduGeodetics(latitude, longitude, `GPS Location (${latitude.toFixed(3)}°, ${longitude.toFixed(3)}°)`),
           isUserLocation: true,
         };
 

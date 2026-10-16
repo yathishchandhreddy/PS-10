@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { LocationData, DisasterType, PropertyDetails } from './types';
-import { TN_REFERENCE_LOCATIONS } from './services/dataSources';
+import { TN_REFERENCE_LOCATIONS, lookupTamilNaduGeodetics } from './services/dataSources';
 import { computeCatastropheRisk } from './services/riskEngine';
 import { calculatePropertyLoss } from './services/propertyLossEngine';
 import { computeIndicativeInsurance } from './services/insuranceEngine';
@@ -141,18 +141,13 @@ export default function App() {
   };
 
   const handleSelectCoordinates = (lat: number, lng: number, placeName?: string) => {
-    const updated: LocationData = {
-      name: placeName || `Selected Location (${lat.toFixed(3)}°, ${lng.toFixed(3)}°)`,
-      district: 'Tamil Nadu',
-      lat,
-      lng,
-      elevationMeters: 8,
-      distanceToCoastKm: Math.abs(lng - 80.25) * 111,
-      distanceToWaterbodyM: 900,
-      seismicZone: lat > 11.0 ? 'Zone III (Moderate)' : 'Zone II (Low)',
-    };
+    const updated = lookupTamilNaduGeodetics(lat, lng, placeName);
     setSelectedLocation(updated);
-    showToast(`Location set to Lat ${lat.toFixed(3)}°, Lng ${lng.toFixed(3)}°`);
+    if (!updated.isWithinTamilNadu) {
+      showToast(`Notice: Coordinates lie outside Tamil Nadu boundary.`);
+    } else {
+      showToast(`Location set: ${updated.district} (${lat.toFixed(3)}°, ${lng.toFixed(3)}°)`);
+    }
   };
 
   const handleDownloadRiskPdf = () => {

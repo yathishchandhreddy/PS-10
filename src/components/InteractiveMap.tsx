@@ -1008,9 +1008,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
           {layerBuildingsEnabled && (
             <div className="space-y-1 pt-0.5">
+              <div className="text-[9px] text-[#0D9488] font-semibold italic">
+                Illustrative Cadastral Fixtures:
+              </div>
               <div className="flex items-center gap-2 text-[#DC2626]">
                 <span className="w-2.5 h-2.5 rounded-xs bg-[#DC2626]" />
-                <span>Red: High Risk Building</span>
+                <span>Red: High Risk Structure</span>
               </div>
               <div className="flex items-center gap-2 text-[#D97706]">
                 <span className="w-2.5 h-2.5 rounded-xs bg-[#D97706]" />
