@@ -11,6 +11,7 @@ interface HeaderProps {
   onSwitchUser?: () => void;
   onSelectRole?: (role: string) => void;
   onReplayIntro?: () => void;
+  onOpenDataHub?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -23,13 +24,14 @@ export const Header: React.FC<HeaderProps> = ({
   onSwitchUser,
   onSelectRole,
   onReplayIntro,
+  onOpenDataHub,
 }) => {
   const [showSosModal, setShowSosModal] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
 
   return (
     <>
-      <header className="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-xl border-b border-[#E2E8F0] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
+      <header className="fixed top-0 inset-x-0 z-[1200] bg-white/95 backdrop-blur-xl border-b border-[#E2E8F0] shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
         <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 flex items-center justify-between gap-2">
           {/* Left: Back Button & Brand */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -100,12 +102,24 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="font-mono font-bold">SOS 112</span>
             </button>
 
+            {onOpenDataHub && (
+              <button
+                type="button"
+                onClick={onOpenDataHub}
+                title="Open Autonomous Data Discovery & Official Datasets Hub"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#E2E8F0] hover:border-[#059669] text-xs font-mono text-[#1E293B] hover:text-[#059669] transition-colors shadow-xs cursor-pointer flex-shrink-0"
+              >
+                <span className="material-symbols-outlined text-[16px] text-[#059669]">dataset</span>
+                <span className="hidden sm:inline">Datasets</span>
+              </button>
+            )}
+
             {onReplayIntro && (
               <button
                 type="button"
                 onClick={onReplayIntro}
                 title="Watch Cinematic Intro"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#E2E8F0] hover:border-[#059669] text-xs font-mono text-[#64748B] hover:text-[#059669] transition-colors shadow-sm cursor-pointer"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#E2E8F0] hover:border-[#059669] text-xs font-mono text-[#64748B] hover:text-[#059669] transition-colors shadow-sm cursor-pointer flex-shrink-0"
               >
                 <span className="material-symbols-outlined text-[16px] text-[#059669]">movie</span>
                 <span>Intro</span>

@@ -19,6 +19,7 @@ import { PropertyLossCalculator } from './components/PropertyLossCalculator';
 import { InsurancePricingView } from './components/InsurancePricingView';
 import { RecommendationsView } from './components/RecommendationsView';
 import { FarmerModule } from './components/FarmerModule';
+import { DatasetHub } from './components/DatasetHub';
 
 type AppStage = 'intro' | 'login' | 'loading' | 'dashboard';
 
@@ -48,6 +49,9 @@ export default function App() {
 
   // Farmer module GIS map toggle
   const [showFarmerMap, setShowFarmerMap] = useState<boolean>(false);
+
+  // Autonomous Data Discovery & Datasets Hub modal
+  const [showDataHub, setShowDataHub] = useState<boolean>(false);
 
   // Selected Location (Defaults to Velachery, Chennai)
   const [selectedLocation, setSelectedLocation] = useState<LocationData>(
@@ -233,10 +237,11 @@ export default function App() {
           showToast(`Switched perspective to ${role}`);
         }}
         onReplayIntro={handleReplayIntro}
+        onOpenDataHub={() => setShowDataHub(true)}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-20 pb-24 flex flex-col space-y-6">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-24 pb-24 flex flex-col space-y-6">
         {/* Dedicated Farmer Perspective Module */}
         {userProfile.role === 'Farmer' && !showFarmerMap ? (
           <FarmerModule
@@ -323,6 +328,54 @@ export default function App() {
               <p className="text-xs sm:text-sm text-[#64748B]">
                 Search for a location, inspect terrain layers, adjust the analysis radius, and analyze catastrophe risk.
               </p>
+            </div>
+
+            {/* Stakeholder Persona & Role Switcher Bar (Ensures Zero Map Overlap) */}
+            <div className="bg-white border border-[#E2E8F0] p-3.5 sm:p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-2xs ${
+                  userProfile.role === 'Farmer' ? 'bg-[#059669]' : 'bg-[#059669]'
+                }`}>
+                  <span className="material-symbols-outlined text-[20px]">
+                    {userProfile.role === 'Farmer' ? 'agriculture' : 'person'}
+                  </span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-mono text-[#64748B] uppercase tracking-wider">
+                      Stakeholder Role:
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#059669] font-mono text-[10px] font-bold border border-[#A7F3D0]">
+                      {userProfile.role}
+                    </span>
+                  </div>
+                  <strong className="text-xs sm:text-sm font-space text-[#1E293B]">
+                    {userProfile.name}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDataHub(true)}
+                  className="px-3.5 py-2 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] hover:border-[#059669] text-xs font-mono text-[#1E293B] hover:text-[#059669] flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                  title="Explore IMD, ISRO, and PMFBY official datasets"
+                >
+                  <span className="material-symbols-outlined text-[16px] text-[#059669]">dataset</span>
+                  <span>Official Datasets</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSwitchUser}
+                  className="px-3.5 py-2 rounded-xl bg-[#059669] hover:bg-[#047857] text-white text-xs font-space font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+                  title="Switch between Property Owner, Farmer, Insurance, Government, and Analyst roles"
+                >
+                  <span className="material-symbols-outlined text-[16px]">switch_account</span>
+                  <span>Switch Role</span>
+                </button>
+              </div>
             </div>
 
             {/* 1. Location Search Field */}
@@ -568,6 +621,13 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* Autonomous Data Discovery & Datasets Hub Modal */}
+      <DatasetHub
+        isOpen={showDataHub}
+        onClose={() => setShowDataHub(false)}
+        selectedLocation={selectedLocation}
+      />
 
       {/* Toast Feedback Notification */}
       {toastMessage && (
